@@ -1,3 +1,4 @@
 vis/users/*
 vis/blockchain/*
 vis/backup/*
+.venv
