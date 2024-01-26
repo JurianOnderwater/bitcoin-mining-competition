@@ -2,3 +2,4 @@ vis/users/*
 vis/blockchain/*
 vis/backup/*
 .venv
+.DS_Store
