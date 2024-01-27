@@ -25,11 +25,17 @@ class MerkleTree:
                 f"{nodes[0].transaction}+{nodes[1].transaction}"
                 hashed_value = Node.hash(nodes[0].hashed_value + nodes[1].hashed_value)
                 return Node(nodes[0], nodes[1], transaction, hashed_value)
-        
-            left = recursion(nodes[:middle])
-            right = recursion(nodes[middle:])
-            transaction = f"{left.transaction}+{right.transaction}"
-            hashed_value = Node.hash(left.hashed_value + right.hashed_value)
+            try:
+                left = recursion(nodes[:middle])
+                right = recursion(nodes[middle:])
+                transaction = f"{left.transaction}+{right.transaction}"
+                hashed_value = Node.hash(left.hashed_value + right.hashed_value)
+            except: #listIndexOutOfRange?
+                left = recursion(nodes[0])
+                right = None
+                transaction = f"{left.transaction}"
+                hashed_value = Node.hash(left.hashed_value)
+
             return Node(left, right, transaction, hashed_value)
 
     def get_root(self):
