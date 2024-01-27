@@ -1,3 +1,5 @@
+from hashlib import sha256
+
 class Node:
     """
     Node class for use in MerkleTree class
@@ -24,7 +26,7 @@ class Node:
         Returns:
             str: hashed value
         """
-        # return someHashFunction(value)
+        # return sha256(value).hexdigest() 
         return hash(value) #Standard hash function in python, didnt read up on what exact function to use
 
 class MerkleTree:
