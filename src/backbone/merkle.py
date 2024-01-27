@@ -18,7 +18,7 @@ class MerkleTree:
     def build_tree(self):
         # hash here already or just build tree and build in POW?
         leaves: list[Node] = [Node(None, None, transaction, Node.hash(transaction)) for transaction in self.leaf_nodes]
-        self.tree = recursion(leaves)
+        self.root = recursion(leaves) #Pretty sure this just builds the root,
         def recursion(nodes):
             middle = len(nodes)//2
             if len(nodes) == 2:
@@ -31,7 +31,7 @@ class MerkleTree:
             transaction = f"{left.transaction}+{right.transaction}"
             hashed_value = Node.hash(left.hashed_value + right.hashed_value)
             return Node(left, right, transaction, hashed_value)
-        return self.tree
 
     def get_root(self):
+        # return self.root #Brain fried, not sure
         raise NotImplementedError("Not sure what to do here :(")
