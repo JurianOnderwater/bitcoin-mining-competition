@@ -29,6 +29,8 @@ class PoW:
         while not self.is_valid(result):
             result = self.double_hash([self.block_header(), NONCE])
             self.block.nonce += 1
+        self.block.hash = result
+        self.block.signature = sha256(PRIVATEKEY + self.block.hash)
         BROADCAST_TO_NETWORK(result)
     """
     +----------------+
@@ -45,17 +47,15 @@ class PoW:
 
     """
 # TODO: 
-    root =  MerkleTree()
-    block = Block(hash=None, 
-                  nonce=None, 
+    block = Block(hash=None,            #Needs to be found
+                  nonce=0, 
                   time=datetime.now().timestamp(), 
                   creation_time=datetime.now().timestamp(),
                   height=None, 
-                  previous_block=None, 
-                  transactions=None, 
+                  previous_block=None,  #GET from server
+                  transactions=None,    #GET from server
                   main_chain=True, 
-                  confirmed=False, 
-                  next=None, 
-                  mined_by=None, 
-                  signature=None)
+                #   confirmed=False, 
+                  mined_by=None, #Us
+                  signature=None) #TODO
 
