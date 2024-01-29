@@ -1,33 +1,6 @@
 from hashlib import sha256
 
-class Node:
-    """
-    Node class for use in MerkleTree class
 
-    Args:
-        left (Node): Left child
-        right (Node): Right child
-        transaction (str): transaction string, idk if relevant, just for completeness
-        hashed_value (str): Hashed value of node
-    """
-    def __init__(self, left, right, transaction, hashed_value) -> None:
-        self.left = left
-        self.right = right
-        self.transaction = transaction
-        self.hashed_value = hashed_value
-
-    def hash(self, value):
-        """
-        Hashes a value
-
-        Args:
-            value (str): value to be hashed
-
-        Returns:
-            str: hashed value
-        """
-        # return sha256(value).hexdigest() 
-        return hash(value) #Standard hash function in python, didnt read up on what exact function to use
 
 class MerkleTree:
     """
@@ -38,35 +11,40 @@ class MerkleTree:
     """
     def __init__(self, txs):
         self.data = None #What is this supposed to be?
-        self.leaf_nodes = txs
-        self.build_tree()
+        self.tx = txs
+        self.root = self.build_tree()
 
     def build_tree(self):
         """
-        Recursively build a Merkle tree.\n
+        Recursively build a Merkle tree.
 
         """
-        leaves: list[Node] = [Node(None, None, transaction, Node.hash(transaction)) for transaction in self.leaf_nodes]
-        self.root = recursion(leaves)
-        def recursion(nodes):
-            middle = len(nodes)//2 #Always keeps the even number on the left
-            if len(nodes) == 2:
-                transaction = f"{nodes[0].transaction}+{nodes[1].transaction}"
-                hashed_value = Node.hash(nodes[0].hashed_value + nodes[1].hashed_value)
-                return Node(nodes[0], nodes[1], transaction, hashed_value)
-            try: #Deal with uneven number of leaves. Possible to add dummy node instead probably
-                left = recursion(nodes[:middle])
-                right = recursion(nodes[middle:])
-                transaction = f"{left.transaction}+{right.transaction}"
-                hashed_value = Node.hash(left.hashed_value + right.hashed_value)
-            except: #listIndexOutOfRange?
-                left = recursion(nodes[0])
-                right = recursion(nodes[0])
-                transaction = f"{left.transaction}+{right.transaction}"
-                hashed_value = Node.hash(left.hashed_value + right.hashed_value)
-
-            # return Node(left, right, transaction, hashed_value)
+        hashed = [self.hash(t) for t in self.tx]
+        while True:
+            hashed = [
+                self.hash(hashed[i] + hashed[i+1]) if i < len(hashed) else self.hash(hashed[i] +  hashed[i]) 
+                for i in range(0, len(hashed), 2)
+                ]
+            if len(hashed) == 1:
+                break
+        return hashed[0]
 
     def get_root(self):
-        # return self.root #Brain fried, not sure
-        raise NotImplementedError("Not sure what to do here :(")
+        return self.root
+    
+    @staticmethod
+    def hash(tx: str) -> str:
+        return sha256(tx.encode('utf-8')).hexdigest()
+
+def test_01():
+    m = MerkleTree(["tx0", "tx1", "tx2", "tx3"])
+    tx0 = MerkleTree.hash("tx0")
+    tx1 = MerkleTree.hash("tx1")
+    tx2 = MerkleTree.hash("tx2")
+    tx3 = MerkleTree.hash("tx3")
+    tx00 = MerkleTree.hash(tx0+ tx1)
+    tx01 = MerkleTree.hash(tx2+ tx3)
+    root = MerkleTree.hash(tx00+ tx01)
+    print(root)
+    print(m.get_root())
+    assert root == m.get_root()
