@@ -51,7 +51,7 @@ class MerkleTree:
         def recursion(nodes):
             middle = len(nodes)//2 #Always keeps the even number on the left
             if len(nodes) == 2:
-                f"{nodes[0].transaction}+{nodes[1].transaction}"
+                transaction = f"{nodes[0].transaction}+{nodes[1].transaction}"
                 hashed_value = Node.hash(nodes[0].hashed_value + nodes[1].hashed_value)
                 return Node(nodes[0], nodes[1], transaction, hashed_value)
             try: #Deal with uneven number of leaves. Possible to add dummy node instead probably
@@ -61,9 +61,9 @@ class MerkleTree:
                 hashed_value = Node.hash(left.hashed_value + right.hashed_value)
             except: #listIndexOutOfRange?
                 left = recursion(nodes[0])
-                right = None
-                transaction = f"{left.transaction}"
-                hashed_value = Node.hash(left.hashed_value)
+                right = recursion(nodes[0])
+                transaction = f"{left.transaction}+{right.transaction}"
+                hashed_value = Node.hash(left.hashed_value + right.hashed_value)
 
             # return Node(left, right, transaction, hashed_value)
 
