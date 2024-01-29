@@ -3,6 +3,7 @@ from abstractions.block import Block
 from merkle import MerkleTree
 from hashlib import sha256
 from server import DIFFICULTY
+import datetime
 
 
 # TODO: Implement Proof of Work
@@ -20,13 +21,14 @@ class PoW:
         elif type(value) == list[str]:
             return sha256(sha256(str(''.join(value))))
 
-    def block_header(self, merkle: MerkleTree):
-        return ''.join([str(self.block.time), str(self.block.previous_block), str(merkle.get_root())])
+    def block_header(self):
+        return ''.join([str(self.block.time), str(self.block.previous_block), str(self.block.merkle_root())])
 
     def proof(self):
         NONCE = self.block.nonce
         while not self.is_valid(result):
-            result = self.double_hash([self.block_header(merkle=self.block.merkle_root), NONCE])
+            result = self.double_hash([self.block_header(), NONCE])
+            self.block.nonce += 1
         BROADCAST_TO_NETWORK(result)
     """
     +----------------+
@@ -42,5 +44,18 @@ class PoW:
     +----------------+
 
     """
-# TODO: Build a block
+# TODO: 
+    root =  MerkleTree()
+    block = Block(hash=None, 
+                  nonce=None, 
+                  time=datetime.now().timestamp(), 
+                  creation_time=datetime.now().timestamp(),
+                  height=None, 
+                  previous_block=None, 
+                  transactions=None, 
+                  main_chain=True, 
+                  confirmed=False, 
+                  next=None, 
+                  mined_by=None, 
+                  signature=None)
 
