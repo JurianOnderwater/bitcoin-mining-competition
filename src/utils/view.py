@@ -113,7 +113,7 @@ def get_difficulty_from_hash(hash):
             break
     return diff
 
-def visualize_blockchain(blocks, path="../vis/blockchain/blockchain.pdf", n_blocks=15):
+def visualize_blockchain(blocks, path="vis/blockchain/blockchain.pdf", n_blocks=15):
     """
     Visualize the last ten blocks of the blockchain with different node colors based on their properties.
 
