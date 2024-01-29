@@ -29,7 +29,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from utils.flask_utils import flask_call
 from abstractions.block import Blockchain
-from server import BLOCK_PROPOSAL, REQUEST_DIFFICULTY, GET_BLOCKCHAIN, ADDRESS, PORT, GET_USERS, GET_DATABASE
+import server
 from utils.view import visualize_blockchain, visualize_blockchain_terminal
 
 def main(argv):
@@ -43,30 +43,30 @@ def main(argv):
                 valid_args = True
                 break
             if opt == "-m":  # mine block
-                response, _, _ = flask_call('POST', BLOCK_PROPOSAL, data=None)
+                response, _, _ = flask_call('POST', server.BLOCK_PROPOSAL, data=None)
                 print(response)
                 valid_args = True
             if opt == "-i":
                 # INFO
                 if arg == "b":
-                    response, _, _ = flask_call('GET', GET_BLOCKCHAIN)
+                    response, _, _ = flask_call('GET', server.GET_BLOCKCHAIN)
                     print(response)
                     valid_args = True
                 elif arg == "u":
-                    response, _, _ = flask_call('GET', GET_USERS)
+                    response, _, _ = flask_call('GET', server.GET_USERS)
                     print(response)
                     valid_args = True
                 else:
                     valid_args = False
             if opt == "-t":
-                # TODO: Implement GET_TXS
-                print("To be implemented ...")
+                response, _, _ = flask_call('GET', server.REQUEST_TXS)
+                print(response)
                 valid_args = True
             if opt == "-v":
                 if arg == "b":
                     # fetch blockchain from server
                     # get blockchain info
-                    _, blockchain, code = flask_call('GET', GET_BLOCKCHAIN)
+                    _, blockchain, code = flask_call('GET', server.GET_BLOCKCHAIN)
                     if blockchain:
                         b_chain = Blockchain.load_json(json.dumps(blockchain))
                         # saves the blockchain as pdf in "vis/blockchain/blockchain.pdf"
@@ -74,7 +74,7 @@ def main(argv):
                         visualize_blockchain_terminal(b_chain.block_list, n_blocks=40)
                     valid_args = True
             if opt == "-d":
-                response, table, code = flask_call('GET', REQUEST_DIFFICULTY)
+                response, table, code = flask_call('GET', server.REQUEST_DIFFICULTY)
                 print(response)
                 print(table)
                 valid_args = True
@@ -95,8 +95,7 @@ def connect_to_server():
 
     :return:
     """
-    url = 'https://' + ADDRESS + ':' + PORT + '/'
-    response = requests.get(url, verify=False)
+    response = requests.get(server.URL, verify=False)
     return response
 
 if __name__ == "__main__":
