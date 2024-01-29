@@ -29,7 +29,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from utils.flask_utils import flask_call
 from abstractions.block import Blockchain
-from server import BLOCK_PROPOSAL, REQUEST_DIFFICULTY, GET_BLOCKCHAIN, ADDRESS, PORT
+from server import BLOCK_PROPOSAL, REQUEST_DIFFICULTY, GET_BLOCKCHAIN, ADDRESS, PORT, GET_USERS, GET_DATABASE
 from utils.view import visualize_blockchain, visualize_blockchain_terminal
 
 def main(argv):
@@ -49,12 +49,12 @@ def main(argv):
             if opt == "-i":
                 # INFO
                 if arg == "b":
-                    # TODO: GET INFO ABOUT BLOCKCHAIN
-                    print("To be implemented ...")
+                    response, _, _ = flask_call('GET', GET_BLOCKCHAIN)
+                    print(response)
                     valid_args = True
                 elif arg == "u":
-                    # TODO: GET INFO ABOUT USERS
-                    print("To be implemented ...")
+                    response, _, _ = flask_call('GET', GET_USERS)
+                    print(response)
                     valid_args = True
                 else:
                     valid_args = False
