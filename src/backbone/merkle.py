@@ -63,7 +63,10 @@ class TestMerkleTree(unittest.TestCase):
             transaction_hashes = [t for t in block["tx_hashes"]]
             m = MerkleTree(transaction_hashes)
             assert merkle_root == m.root
-    
+
+# Simplify result from /get_blockchain with
+# jq '[.data.chain[] | {merkle_root:.merkle_root, tx_hashes:.transactions | map(.hash)}]'
+# to get minimized data to test merkle_tree against
 block_chain = [
 {
   "merkle_root": "d2d5247f62045be3530dfb5c44850b82470f4049b9da70097ad6b7aee1644151",
