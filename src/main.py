@@ -63,9 +63,9 @@ def main(argv):
                     signature=None,
                 )  # Done in consensus.py
 
-                data = PoW.proof(block=block)
+                block = PoW(block).proof()
+                response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
                 print(response)
-                response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=data)
                 valid_args = True
                 print(response)
             if opt == "-i":
