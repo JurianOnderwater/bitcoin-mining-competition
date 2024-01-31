@@ -5,7 +5,7 @@ from hashlib import sha256
 from server import DIFFICULTY, KEY_PAIRS_PATH, SELF
 import datetime
 import rsa
-from utils.cryptographic import load_private
+from utils.cryptographic import load_private, double_hash
 
 # TODO: Implement Proof of Work
 class PoW:
@@ -26,20 +26,14 @@ class PoW:
 
     def is_valid(self, value):
         return value[:DIFFICULTY] == '0' * DIFFICULTY
-    
-    def double_hash(value):
-        if type(value) == str:
-            return sha256(sha256(value))
-        elif type(value) == list[str]:
-            return sha256(sha256(str(''.join(value))))
 
-    def block_header(self):
+    def block_header(self) -> str:
         return ''.join([str(self.block.time), str(self.block.previous_block), str(self.block.merkle_root())])
 
     def proof(self):
         NONCE = self.block.nonce
         while not self.is_valid(result):
-            result = self.double_hash([self.block_header(), NONCE])
+            result = double_hash(self.block_header() + str(NONCE))
             self.block.nonce += 1
         self.block.hash = result
         self.block.signature = self.sign(self.block.hash)
@@ -58,15 +52,3 @@ class PoW:
     +----------------+
 
     """
-# TODO: 
-    block = Block(hash=None,            #Needs to be found
-                  nonce=0, 
-                  time=datetime.now().timestamp(), 
-                  creation_time=datetime.now().timestamp(),
-                  height=None, 
-                  previous_block=None,  #GET from server
-                  transactions=None,    #GET from server
-                  main_chain=True, 
-                #   confirmed=False, 
-                  mined_by=None, #Us
-                  signature=None) #TODO
