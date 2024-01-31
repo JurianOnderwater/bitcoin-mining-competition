@@ -1,9 +1,7 @@
 # backbone/consensus.py
 from abstractions.block import Block
-from merkle import MerkleTree
 from hashlib import sha256
 from server import DIFFICULTY, KEY_PAIRS_PATH, SELF
-import datetime
 import rsa
 from utils.cryptographic import load_private, double_hash
 
