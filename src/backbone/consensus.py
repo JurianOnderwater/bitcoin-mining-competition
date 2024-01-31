@@ -42,7 +42,7 @@ class PoW:
             result = self.double_hash([self.block_header(), NONCE])
             self.block.nonce += 1
         self.block.hash = result
-        self.block.signature = sha256(PRIVATEKEY + self.block.hash)
+        self.block.signature = self.sign(self.block.hash)
         BROADCAST_TO_NETWORK(result)
     """
     +----------------+
