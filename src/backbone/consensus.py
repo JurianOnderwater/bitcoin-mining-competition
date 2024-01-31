@@ -7,11 +7,9 @@ import datetime
 import rsa
 from utils.cryptographic import load_private, double_hash
 
-# TODO: Implement Proof of Work
 class PoW:
     def __init__(self, block: Block) -> None:
         self.block = block
-        self.proof()
 
     def sign(self, message):
         """
@@ -37,7 +35,7 @@ class PoW:
             self.block.nonce += 1
         self.block.hash = result
         self.block.signature = self.sign(self.block.hash)
-        BROADCAST_TO_NETWORK(result)
+        return self.block
     """
     +----------------+
     |  Block Header  | <--- Previous Block Hash + Timestamp + Merkle Root
