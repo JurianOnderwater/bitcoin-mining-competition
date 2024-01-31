@@ -27,6 +27,9 @@ import json
 from datetime import datetime
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+from backbone.consensus import PoW
+from abstractions.block import Block
+
 from utils.flask_utils import flask_call
 from abstractions.block import Blockchain
 import server
@@ -43,9 +46,22 @@ def main(argv):
                 valid_args = True
                 break
             if opt == "-m":  # mine block
-                response, _, _ = flask_call('POST', server.BLOCK_PROPOSAL, data=None)
+                transactions, _, _ = flask_call('GET', server.REQUEST_TXS)
+                block = Block(hash=None,            #Needs to be found
+                  nonce=0, 
+                  time=datetime.now().timestamp(), 
+                  creation_time=datetime.now().timestamp(),
+                  height=None, 
+                  previous_block=None,  #GET from server
+                  transactions=None,    #GET from server
+                  main_chain=True, 
+                  confirmed=False, 
+                  mined_by=None, #Us
+                  signature=None) #TODO
+                PoW.proof(block=block)
                 print(response)
                 valid_args = True
+                response, _, _ = flask_call('POST', server.BLOCK_PROPOSAL, data=None)
             if opt == "-i":
                 # INFO
                 if arg == "b":
