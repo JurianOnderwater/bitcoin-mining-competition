@@ -21,13 +21,11 @@ class MerkleTree:
 
         """
         hashed = [self.hash(t) for t in self.tx_hashes]
-        while True:
+        while len(hashed) != 1:
             hashed = [
                 self.hash(hashed[i] + hashed[i+1]) if i+1 < len(hashed) else self.hash(hashed[i] +  hashed[i]) 
                 for i in range(0, len(hashed), 2)
                 ]
-            if len(hashed) == 1:
-                break
         return hashed[0]
 
     def get_root(self):
@@ -48,8 +46,6 @@ class TestMerkleTree(unittest.TestCase):
         tx00 = MerkleTree.hash(tx0+ tx1)
         tx01 = MerkleTree.hash(tx2+ tx3)
         root = MerkleTree.hash(tx00+ tx01)
-        print(root)
-        print(m.get_root())
         assert root == m.get_root()['hash']
     
     def test_uneven(self):
