@@ -1,5 +1,5 @@
-DIFFICULTY = 6
-USER_PATH = "../vis/users/"
+DIFFICULTY = 7
+USER_PATH = "vis/users/"
 USER_FILE = "users.db"
 BLOCKCHAIN_PATH = "../vis/blockchain/"
 BLOCKCHAIN_FILE = "blockchain.pkl"

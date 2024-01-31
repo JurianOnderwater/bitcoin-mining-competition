@@ -29,11 +29,13 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from backbone.consensus import PoW
 from abstractions.block import Block
+from abstractions.transaction import Transaction
 
 from utils.flask_utils import flask_call
 from abstractions.block import Blockchain
 import server
 from utils.view import visualize_blockchain, visualize_blockchain_terminal
+from time import perf_counter
 
 
 def main(argv):
@@ -48,24 +50,26 @@ def main(argv):
                 break
             if opt == "-m":  # mine block
                 _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
+                _, blockchain, _ = flask_call("GET", server.GET_BLOCKCHAIN)
+                previous_block = blockchain["chain"][-1]
                 valid_args = True
                 block = Block(
                     hash=None,  # Needs to be found
                     nonce=0,
                     time=datetime.now().timestamp(),
-                    creation_time=datetime.now().timestamp(),
-                    height=None,
-                    previous_block=None,  # GET from server
-                    transactions=transactions, 
+                    creation_time=0,
+                    height=previous_block["height"] + 1,
+                    previous_block=previous_block["hash"],  # GET from server
+                    transactions=[Transaction.load_json(json.dumps(t)) for t in transactions], 
                     main_chain=True,
                     confirmed=False,
-                    mined_by=None,  # Us
+                    mined_by=server.SELF,  # Us
                     signature=None,
                 )  # Done in consensus.py
-
+                start = perf_counter()
                 block = PoW(block).proof()
+                block.creation_time = perf_counter() - start
                 response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
-                print(response)
                 valid_args = True
                 print(response)
             if opt == "-i":
