@@ -35,6 +35,7 @@ from abstractions.block import Blockchain
 import server
 from utils.view import visualize_blockchain, visualize_blockchain_terminal
 
+
 def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hi:tmdv:")
@@ -46,43 +47,48 @@ def main(argv):
                 valid_args = True
                 break
             if opt == "-m":  # mine block
-                transactions, _, _ = flask_call('GET', server.REQUEST_TXS)
-                block = Block(hash=None,            #Needs to be found
-                  nonce=0, 
-                  time=datetime.now().timestamp(), 
-                  creation_time=datetime.now().timestamp(),
-                  height=None, 
-                  previous_block=None,  #GET from server
-                  transactions=None,    #GET from server
-                  main_chain=True, 
-                  confirmed=False, 
-                  mined_by=None, #Us
-                  signature=None) #TODO
-                PoW.proof(block=block)
-                print(response)
+                _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
                 valid_args = True
-                response, _, _ = flask_call('POST', server.BLOCK_PROPOSAL, data=None)
+                block = Block(
+                    hash=None,  # Needs to be found
+                    nonce=0,
+                    time=datetime.now().timestamp(),
+                    creation_time=datetime.now().timestamp(),
+                    height=None,
+                    previous_block=None,  # GET from server
+                    transactions=transactions, 
+                    main_chain=True,
+                    confirmed=False,
+                    mined_by=None,  # Us
+                    signature=None,
+                )  # Done in consensus.py
+
+                data = PoW.proof(block=block)
+                print(response)
+                response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=data)
+                valid_args = True
+                print(response)
             if opt == "-i":
                 # INFO
                 if arg == "b":
-                    response, _, _ = flask_call('GET', server.GET_BLOCKCHAIN)
+                    response, _, _ = flask_call("GET", server.GET_BLOCKCHAIN)
                     print(response)
                     valid_args = True
                 elif arg == "u":
-                    response, _, _ = flask_call('GET', server.GET_USERS)
+                    response, _, _ = flask_call("GET", server.GET_USERS)
                     print(response)
                     valid_args = True
                 else:
                     valid_args = False
             if opt == "-t":
-                response, _, _ = flask_call('GET', server.REQUEST_TXS)
+                response, _, _ = flask_call("GET", server.REQUEST_TXS)
                 print(response)
                 valid_args = True
             if opt == "-v":
                 if arg == "b":
                     # fetch blockchain from server
                     # get blockchain info
-                    _, blockchain, code = flask_call('GET', server.GET_BLOCKCHAIN)
+                    _, blockchain, code = flask_call("GET", server.GET_BLOCKCHAIN)
                     if blockchain:
                         b_chain = Blockchain.load_json(json.dumps(blockchain))
                         # saves the blockchain as pdf in "vis/blockchain/blockchain.pdf"
@@ -90,7 +96,7 @@ def main(argv):
                         visualize_blockchain_terminal(b_chain.block_list, n_blocks=40)
                     valid_args = True
             if opt == "-d":
-                response, table, code = flask_call('GET', server.REQUEST_DIFFICULTY)
+                response, table, code = flask_call("GET", server.REQUEST_DIFFICULTY)
                 print(response)
                 print(table)
                 valid_args = True
@@ -106,6 +112,7 @@ def main(argv):
     except KeyboardInterrupt as e:
         print(e)
 
+
 def connect_to_server():
     """
 
@@ -113,6 +120,7 @@ def connect_to_server():
     """
     response = requests.get(server.URL, verify=False)
     return response
+
 
 if __name__ == "__main__":
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
