@@ -10,7 +10,7 @@ class MerkleTree:
     Args:
         tx_hashes (list[str]): list of transaction hashes
     """
-    def __init__(self, tx_hashes: str):
+    def __init__(self, tx_hashes: list[str]):
         self.data = None #What is this supposed to be?
         self.tx_hashes = tx_hashes
         self.root = self.build_tree()

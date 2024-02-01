@@ -27,7 +27,8 @@ import json
 from datetime import datetime
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from backbone.consensus import PoW
+from backbone.consensus import proof_of_work, sign
+from backbone.merkle import MerkleTree
 from abstractions.block import Block
 from abstractions.transaction import Transaction
 
@@ -35,7 +36,6 @@ from utils.flask_utils import flask_call
 from abstractions.block import Blockchain
 import server
 from utils.view import visualize_blockchain, visualize_blockchain_terminal
-from time import perf_counter
 
 
 def main(argv):
@@ -52,26 +52,29 @@ def main(argv):
                 _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
                 _, blockchain, _ = flask_call("GET", server.GET_BLOCKCHAIN)
                 previous_block = blockchain["chain"][-1]
-                valid_args = True
+                prev_block_hash = previous_block["hash"]
+                time = datetime.now().timestamp()
+                merkle_root = MerkleTree([t["hash"] for t in transactions]).get_root()
+                block_header = prev_block_hash + str(time) + str(merkle_root)
+                block_hash, nonce, perf_time = proof_of_work(block_header)
+                signature = sign(block_hash)
+
                 block = Block(
-                    hash=None,  # Needs to be found
-                    nonce=0,
-                    time=datetime.now().timestamp(),
-                    creation_time=0,
+                    hash=block_hash,
+                    nonce=nonce,
+                    time=time,
+                    creation_time=perf_time,
                     height=previous_block["height"] + 1,
-                    previous_block=previous_block["hash"],  # GET from server
+                    previous_block=prev_block_hash,
                     transactions=[Transaction.load_json(json.dumps(t)) for t in transactions], 
-                    main_chain=True,
-                    confirmed=False,
-                    mined_by=server.SELF,  # Us
-                    signature=None,
-                )  # Done in consensus.py
-                start = perf_counter()
-                block = PoW(block).proof()
-                block.creation_time = perf_counter() - start
+                    mined_by=server.SELF,
+                    signature=signature,
+                )
+
                 response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
-                valid_args = True
+
                 print(response)
+                valid_args = True
             if opt == "-i":
                 # INFO
                 if arg == "b":
