@@ -34,7 +34,6 @@ class PoW:
             hash_input = f'{header}{str(nonce)}'
             result = double_hash(hash_input)
             if self.is_valid(result):
-                # self.queue.put((result, nonce))
                 print(f"{mp.current_process().name} found valid hash: {result}")
                 return result, nonce
             nonce += 1
