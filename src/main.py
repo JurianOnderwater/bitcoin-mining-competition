@@ -8,9 +8,9 @@ Assignment 1 - Blockchain Mining Competition
 
 Usage:
         -h                  : display usage information
-        -i [b, u]           : display information for blocks or users   #TODO
-        -t                  : request N transactions                    #TODO
-        -m                  : mine a block                              #TODO
+        -i [b, u]           : display information for blocks or users
+        -t                  : request N transactions
+        -m [pc]             : mine a block, optionally parallel and looping
         -v b                : visualize blockchain, saved to vis/blockchain/blockchain.pdf
         -d                  : request DIFFICULTY level
 """
@@ -27,7 +27,7 @@ import json
 from datetime import datetime
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from backbone.consensus import proof_of_work, sign
+from backbone.consensus import proof_of_work, sign, mp_proof_of_work
 from backbone.merkle import MerkleTree
 from abstractions.block import Block
 from abstractions.transaction import Transaction
@@ -40,7 +40,7 @@ from utils.view import visualize_blockchain, visualize_blockchain_terminal
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "hi:tmdv:")
+        opts, args = getopt.getopt(argv, "him:tdv:")
         # print(f'opts : {opts}\nargs : {args}')
         valid_args = False
         for opt, arg in opts:
@@ -49,31 +49,12 @@ def main(argv):
                 valid_args = True
                 break
             if opt == "-m":  # mine block
-                _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
-                _, blockchain, _ = flask_call("GET", server.GET_BLOCKCHAIN)
-                previous_block = blockchain["chain"][-1]
-                prev_block_hash = previous_block["hash"]
-                time = datetime.now().timestamp()
-                merkle_root = MerkleTree([t["hash"] for t in transactions]).get_root()
-                block_header = prev_block_hash + str(time) + str(merkle_root)
-                block_hash, nonce, perf_time = proof_of_work(block_header)
-                signature = sign(block_hash)
-
-                block = Block(
-                    hash=block_hash,
-                    nonce=nonce,
-                    time=time,
-                    creation_time=perf_time,
-                    height=previous_block["height"] + 1,
-                    previous_block=prev_block_hash,
-                    transactions=[Transaction.load_json(json.dumps(t)) for t in transactions], 
-                    mined_by=server.SELF,
-                    signature=signature,
-                )
-
-                response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
-
-                print(response)
+                while True:
+                    block = mine_block(parallelize=("p" in arg))
+                    response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
+                    print(response)
+                    if not "c" in arg:
+                        break
                 valid_args = True
             if opt == "-i":
                 # INFO
@@ -119,6 +100,33 @@ def main(argv):
     except KeyboardInterrupt as e:
         print(e)
 
+
+def mine_block(parallelize: bool) -> Block:
+    _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
+    _, blockchain, _ = flask_call("GET", server.GET_BLOCKCHAIN)
+    previous_block = blockchain["chain"][-1]
+    prev_block_hash = previous_block["hash"]
+    time = datetime.now().timestamp()
+    merkle_root = MerkleTree([t["hash"] for t in transactions]).get_root()
+    block_header = prev_block_hash + str(time) + str(merkle_root)
+    if parallelize:
+        block_hash, nonce, perf_time = mp_proof_of_work(block_header)
+    else:
+        block_hash, nonce, perf_time = proof_of_work(block_header)
+    signature = sign(block_hash)
+
+    block = Block(
+        hash=block_hash,
+        nonce=nonce,
+        time=time,
+        creation_time=perf_time,
+        height=previous_block["height"] + 1,
+        previous_block=prev_block_hash,
+        transactions=[Transaction.load_json(json.dumps(t)) for t in transactions], 
+        mined_by=server.SELF,
+        signature=signature,
+    )
+    return block
 
 def connect_to_server():
     """
