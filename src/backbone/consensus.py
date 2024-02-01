@@ -16,7 +16,7 @@ class PoW:
         :return:
         """
         b_msg = bytes(message, 'utf-8')
-        with open(f"{USER_PATH}{SELF}_pvk.pem", "r") as keyfile:
+        with open(USER_PATH / f"{SELF}_pvk.pem", "r") as keyfile:
             key = load_private(keyfile.read())
             return rsa.sign(b_msg, key, 'SHA-1')
 

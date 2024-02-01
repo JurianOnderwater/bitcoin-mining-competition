@@ -1,10 +1,13 @@
+from pathlib import Path
+
+PROJECT_PATH = Path(__file__).parent.parent.parent
+
 DIFFICULTY = 7
-USER_PATH = "vis/users/"
+USER_PATH = PROJECT_PATH / "vis" / "users"
 USER_FILE = "users.db"
-BLOCKCHAIN_PATH = "../vis/blockchain/"
+BLOCKCHAIN_PATH = PROJECT_PATH / "vis" / "blockchain"
 BLOCKCHAIN_FILE = "blockchain.pkl"
-KEY_PAIRS_PATH = "../vis/users/keys/"
-KEY_PAIRS_DICT = "user_keys.pkl"
+KEY_PAIRS_PATH = PROJECT_PATH / "vis" / "users"
 
 # network
 PORT = '8080'
