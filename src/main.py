@@ -49,29 +49,34 @@ def main(argv):
                 valid_args = True
                 break
             if opt == "-m":  # mine block
-                _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
-                _, blockchain, _ = flask_call("GET", server.GET_BLOCKCHAIN)
-                previous_block = blockchain["chain"][-1]
+                while True:
+                    _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
+                    _, blockchain, _ = flask_call("GET", server.GET_BLOCKCHAIN)
+                    previous_block = blockchain["chain"][-1]
+                    valid_args = True
+                    block = Block(
+                        hash=None,  # Needs to be found
+                        nonce=0,
+                        time=datetime.now().timestamp(),
+                        creation_time=0,
+                        height=previous_block["height"] + 1,
+                        previous_block=previous_block["hash"],  # GET from server
+                        transactions=[Transaction.load_json(json.dumps(t)) for t in transactions], 
+                        main_chain=True,
+                        confirmed=False,
+                        mined_by=server.SELF,  # Us
+                        signature=None,
+                    )  # Done in consensus.py
+                    start = perf_counter()
+                    block = PoW(block).proof()
+                    block.creation_time = perf_counter() - start
+                    response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
+                    print(response)
+                    if args[0] == "c":
+                        continue
+                    else:
+                        break
                 valid_args = True
-                block = Block(
-                    hash=None,  # Needs to be found
-                    nonce=0,
-                    time=datetime.now().timestamp(),
-                    creation_time=0,
-                    height=previous_block["height"] + 1,
-                    previous_block=previous_block["hash"],  # GET from server
-                    transactions=[Transaction.load_json(json.dumps(t)) for t in transactions], 
-                    main_chain=True,
-                    confirmed=False,
-                    mined_by=server.SELF,  # Us
-                    signature=None,
-                )  # Done in consensus.py
-                start = perf_counter()
-                block = PoW(block).proof()
-                block.creation_time = perf_counter() - start
-                response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
-                valid_args = True
-                print(response)
             if opt == "-i":
                 # INFO
                 if arg == "b":
