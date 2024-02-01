@@ -108,7 +108,7 @@ def mine_block(parallelize: bool) -> Block:
     prev_block_hash = previous_block["hash"]
     time = datetime.now().timestamp()
     merkle_root = MerkleTree([t["hash"] for t in transactions]).get_root()
-    block_header = prev_block_hash + str(time) + str(merkle_root)
+    block_header = prev_block_hash + str(time) + str(merkle_root["hash"])
     if parallelize:
         block_hash, nonce, perf_time = mp_proof_of_work(block_header)
     else:
