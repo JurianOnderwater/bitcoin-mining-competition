@@ -60,25 +60,26 @@ def mp_proof_of_work(block_header: str) -> tuple[str, int, float]:
         tuple[str, int]: hash, nonce, perf time
     """
     # Distribute nonces over available cpus
-    nonces = [2**32 // mp.cpu_count() * x for x in range(mp.cpu_count())]
+    headerNonces = [(block_header, 2**32 // mp.cpu_count() * x) for x in range(mp.cpu_count())]
 
     # multiprocess to find valid hash
     start = perf_counter()
-    p = partial(mp_find_valid_hash, block_header)
     with mp.Pool() as pool:
-        for result in pool.imap_unordered(p, nonces):
+        for result in pool.imap_unordered(mp_find_valid_hash, headerNonces):
             if valid_hash(result[0]):
                 block_hash, nonce = result
                 pool.terminate()
                 return block_hash, nonce, perf_counter() - start
                 break
 
-def mp_find_valid_hash(header: str, nonce: int):
+def mp_find_valid_hash(headerNonce: tuple[str, int]):
+    header = headerNonce[0]
+    nonce = headerNonce[1]
     print(f'nonce: {nonce}, cpu: {mp.current_process().name}')
     while True:
         hash_input = f'{header}{str(nonce)}'
         result = double_hash(hash_input)
         if valid_hash(result):
-            print(f"{mp.current_process().name} found valid hash: {result}")
+            print(f"{mp.current_process().name} found valid hash: {result}\nnonce: {nonce}")
             return result, nonce
         nonce += 1
