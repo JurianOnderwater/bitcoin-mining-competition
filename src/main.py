@@ -10,7 +10,7 @@ Usage:
         -h                  : display usage information
         -i [b, u]           : display information for blocks or users
         -t                  : request N transactions
-        -m [pc]             : mine a block, optionally parallel and looping
+        -m [pl]             : mine a block, optionally parallel and looping
         -v b                : visualize blockchain, saved to vis/blockchain/blockchain.pdf
         -d                  : request DIFFICULTY level
 """
@@ -53,7 +53,7 @@ def main(argv):
                     block = mine_block(parallelize=("p" in arg))
                     response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
                     print(response)
-                    if not "c" in arg:
+                    if not "l" in arg:
                         break
                 valid_args = True
             if opt == "-i":
