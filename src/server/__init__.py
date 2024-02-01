@@ -7,7 +7,7 @@ USER_PATH = PROJECT_PATH / "vis" / "users"
 USER_FILE = "users.db"
 BLOCKCHAIN_PATH = PROJECT_PATH / "vis" / "blockchain"
 BLOCKCHAIN_FILE = "blockchain.pkl"
-KEY_PAIRS_PATH = PROJECT_PATH / "vis" / "users"
+KEY_PAIRS_PATH = PROJECT_PATH / "vis" / "users" / "keys"
 
 # network
 PORT = '8080'
