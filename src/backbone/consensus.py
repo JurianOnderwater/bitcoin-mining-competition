@@ -1,5 +1,5 @@
 # backbone/consensus.py
-from server import DIFFICULTY, USER_PATH, SELF
+from server import DIFFICULTY, KEY_PAIRS_PATH, SELF
 import rsa
 from utils.cryptographic import load_private, double_hash
 from time import perf_counter
@@ -26,7 +26,7 @@ def sign(message: str):
     :param message:
     :return:
     """
-    with open(f"{USER_PATH}/{SELF}_pvk.pem", "r") as keyfile:
+    with open(KEY_PAIRS_PATH / f"{SELF}_pvk.pem", "r") as keyfile:
         key = load_private(keyfile.read())
         return rsa.sign(message.encode("utf-8"), key, 'SHA-1')
 
