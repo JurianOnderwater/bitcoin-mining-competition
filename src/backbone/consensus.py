@@ -4,7 +4,7 @@ import rsa
 from utils.cryptographic import load_private, double_hash
 from time import perf_counter
 import multiprocessing as mp
-
+from functools import partial
 """
 +----------------+
 |  Block Header  | <--- Previous Block Hash + Timestamp + Merkle Root
@@ -26,7 +26,7 @@ def sign(message: str):
     :param message:
     :return:
     """
-    with open(f"{USER_PATH}{SELF}_pvk.pem", "r") as keyfile:
+    with open(f"{USER_PATH}/{SELF}_pvk.pem", "r") as keyfile:
         key = load_private(keyfile.read())
         return rsa.sign(message.encode("utf-8"), key, 'SHA-1')
 
@@ -64,8 +64,9 @@ def mp_proof_of_work(block_header: str) -> tuple[str, int, float]:
 
     # multiprocess to find valid hash
     start = perf_counter()
+    p = partial(mp_find_valid_hash, block_header)
     with mp.Pool() as pool:
-        for result in pool.imap_unordered(mp_find_valid_hash, nonces):
+        for result in pool.imap_unordered(p, nonces):
             if valid_hash(result[0]):
                 block_hash, nonce = result
                 pool.terminate()
