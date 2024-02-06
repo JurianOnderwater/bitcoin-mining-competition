@@ -26,6 +26,7 @@ import requests
 import json
 from datetime import datetime
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import argparse
 
 from backbone.consensus import proof_of_work, sign, mp_proof_of_work
 from backbone.merkle import MerkleTree
@@ -40,40 +41,48 @@ from utils.view import visualize_blockchain, visualize_blockchain_terminal
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "him:tdv:")
-        # print(f'opts : {opts}\nargs : {args}')
+        parser = construct_parser()
+        cmd_input = parser.parse_args(argv)
+
+        # convert to dictionary and parse out unused options
+        cmd_input = dict(vars(cmd_input))
+        cmd_input = {k: v for k, v in cmd_input.items() if v is not None and v is not False}
+
         valid_args = False
-        for opt, arg in opts:
-            if opt == "-h":  # usage
+        for opt, args in cmd_input.items():
+            print(f"opt: {opt}, args: {args}")
+            if opt == "h":
                 print(__doc__)
                 valid_args = True
-                break
-            if opt == "-m":  # mine block
+
+            elif opt == "m":
                 while True:
-                    block = mine_block(parallelize=("p" in arg))
+                    block = mine_block(parallelize=("p" in args))
                     response, _, _ = flask_call("POST", server.BLOCK_PROPOSAL, data=block.to_dict())
                     print(response)
-                    if not "l" in arg:
+                    if not "l" in args:
                         break
-                valid_args = True
-            if opt == "-i":
-                # INFO
-                if arg == "b":
+                    valid_args = True
+
+            elif opt == "i":
+                if "b" in args:
                     response, _, _ = flask_call("GET", server.GET_BLOCKCHAIN)
                     print(response)
                     valid_args = True
-                elif arg == "u":
+                elif "u" in args:
                     response, _, _ = flask_call("GET", server.GET_USERS)
                     print(response)
                     valid_args = True
                 else:
                     valid_args = False
-            if opt == "-t":
+
+            elif opt == "t":
                 response, _, _ = flask_call("GET", server.REQUEST_TXS)
                 print(response)
                 valid_args = True
-            if opt == "-v":
-                if arg == "b":
+
+            elif opt == "v":
+                if "b" in args:
                     # fetch blockchain from server
                     # get blockchain info
                     _, blockchain, code = flask_call("GET", server.GET_BLOCKCHAIN)
@@ -83,13 +92,15 @@ def main(argv):
                         visualize_blockchain(b_chain.block_list, n_blocks=40)
                         visualize_blockchain_terminal(b_chain.block_list, n_blocks=40)
                     valid_args = True
-            if opt == "-d":
+
+            elif opt == "d":
                 response, table, code = flask_call("GET", server.REQUEST_DIFFICULTY)
                 print(response)
                 print(table)
                 valid_args = True
-        if valid_args is False:
-            print(__doc__)
+
+            if valid_args is False:
+                print(__doc__)
     except getopt.GetoptError:
         print(__doc__)
         sys.exit(2)
@@ -100,6 +111,15 @@ def main(argv):
     except KeyboardInterrupt as e:
         print(e)
 
+def construct_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Blockchain Mining Competition", add_help=False)
+    parser.add_argument("-h", action="store_true", help="display usage information")
+    parser.add_argument("-i", nargs=1, choices=["b", "u"], help="display information on blocks or users")
+    parser.add_argument("-t", action="store_true", help="request N transactions")
+    parser.add_argument("-m", nargs='*', choices=["p", "l"], help="mine a block, optionally parallel and/or looping")
+    parser.add_argument("-v", nargs=1, choices=["b"], help="visualize blockchain, saved to vis/blockchain/blockchain.pdf")
+    parser.add_argument("-d", action="store_true", help="request DIFFICULTY level")
+    return parser
 
 def mine_block(parallelize: bool) -> Block:
     _, transactions, _ = flask_call("GET", server.REQUEST_TXS)
